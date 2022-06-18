@@ -10,6 +10,6 @@ Usage, just run the script </br>
 Takes a filepath as an argument, doesn't have to be C:\ drive. For best results run in admin powerShell prompt. </br>
 Usage, `.\diskSpace.ps1 C:\FILEPATH` </br>
 
-**createUser**, A Powershell script to create a user. Creates an admin user by default.
+**userCreation**, A Powershell script to create a user. Creates an admin user by default.
 A version is in progress to create an admin or non-admin user. Takes a username, first name and last name as an argument. </br>
-Usage, `.\createUser.ps1 jdoe John Doe` <br>
+Usage, `.\userCreation.ps1 jdoe John Doe` <br>
