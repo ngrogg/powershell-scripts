@@ -1,12 +1,9 @@
 # powerShell
 
-A repo for my studies in PowerShell on Linux
+A repo for my studies in PowerShell scripting. 
 
 ## Install 
-The folder where I have the install script and .deb repo I used to install powerShell
-If I use any further methods to install powershell (such as flatpak) I'll add it 
-
-Currently I've only installed PowerShell on Debian 11
+Various install scripts I use to install PowerShell on various Linux Distros. 
 
 ## Scripts 
-A folder for all the scripts I've created in powershell
+The PowerShell scripts I've created so far. 
