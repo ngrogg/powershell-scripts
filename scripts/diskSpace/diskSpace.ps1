@@ -26,9 +26,11 @@ if (!$filepath){
 
 # If filepath STILL undefined, exit 
 if (!$filepath){
+	Write-Host "A check has failed"
 	Write-Host "-----------------------------------------------"
 	Write-Host "filepath still undefined, re-run script with a defined filepath"
 	Write-Host "Usage: .\diskSpace.ps1 FILEPATH"
+	Write-Host "Ex. .\diskSpace.ps1 C:\inetpub"
 	Write-Host "-----------------------------------------------"
 	Exit
 }
