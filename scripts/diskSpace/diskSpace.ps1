@@ -46,7 +46,6 @@ $_.fullname, '{0:N2} GB' -f ($len / 1Gb)
 
 # Formatting
 Write-Host "-----------------------------------------------"
-Write-Host "Copy/Paste relevant info for disk space tickets"
 Write-Host ""
 
 # Formatting 
@@ -58,4 +57,3 @@ gci $filepath -r| sort -descending -property length | select -first 10 name, @{N
 
 # Formatting 
 Write-Host "-----------------------------------------------"
-Write-Host "Copy/Paste relevant info for disk space tickets"
