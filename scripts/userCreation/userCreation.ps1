@@ -82,17 +82,15 @@ else {
 	Write-Host "-----------------------------------------------"
 }
 
-exit
-
 # Create user 
-## Set a temp password, make sure to have user change this!
-$password="VerySecurePass1!"
-
-## Convert string to secure string
-$encryptedPassword=ConvertTo-SecureString -String $password -AsPlainText -Force
+## Set a password
+Write-Host "-----------------------------------------------"
+Write-Host "Enter a user password"
+$password = Read-Host -AsSecureString
+Write-Host "-----------------------------------------------"
 
 ## Create user 
-New-LocalUser $username -Password $encryptedPassword -FullName $fullName
+New-LocalUser $username -Password $password -FullName $fullName
 
 # Set user as admin
 ## Check if admin bool null
