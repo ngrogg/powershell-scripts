@@ -2,7 +2,7 @@
 
 # Written for Pop OS 22, but should work on Ubuntu 22
 # Stolen from Microsoft docs
-# https://docs.microsoft.com/en-us/powershell/scripting/install/install-ubuntu?view=powershell-7.2 
+# https://docs.microsoft.com/en-us/powershell/scripting/install/install-ubuntu?view=powershell-7.2
 
 # Update the list of packages
 sudo apt-get update
@@ -11,7 +11,7 @@ sudo apt-get update
 sudo apt-get install -y wget apt-transport-https software-properties-common
 
 # Download the Microsoft repository GPG keys
-wget -q "https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb"
+wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
 
 # Register the Microsoft repository GPG keys
 sudo dpkg -i packages-microsoft-prod.deb

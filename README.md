@@ -1,4 +1,4 @@
-# powerShell
+# PowerShell Scripts
 
 A repo for my studies in PowerShell scripting.
 
