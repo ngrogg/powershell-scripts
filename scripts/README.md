@@ -9,6 +9,10 @@ The scripts are as follows: <br>
   Usage, `.\diskSpace.ps1 C:\FILEPATH` <br>
 * **helloWorld**, the simple 'hello world' script to test that everything is configured and working on your system. <br>
   Usage, just run the script <br>
+* **lastLogin.ps1**, A PowerShell script for listing the last login of non-Default users. <br>
+  Usage, `.\lastLogin.ps1 login` <br>
+  Also has a help function <br>
+  Usage, `.\lastLogin.ps1 help` <br>
 * **mssqlTest**, A PowerShell script to test MSSQL connections.
   Takes a server IP and database name as an argument. <br>
   Usage, `.\mssqlTest.ps1 IP databaseName` <br>
