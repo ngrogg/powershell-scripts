@@ -7,6 +7,9 @@ The scripts are as follows: <br>
 * **diskSpace**, A PowerShell script to find the largest files and folders at a provided filepath.
   Takes a filepath as an argument, doesn't have to be C:\ drive. For best results run in admin powerShell prompt. <br>
   Usage, `.\diskSpace.ps1 C:\FILEPATH` <br>
+* **fakeTop**, A PowerShell script designed to emulate top output. Lists the processes using the most CPU.
+  Usage, just run the script. Control + C to exit. <br>
+  See comments for rundown of output and sources. <br>
 * **helloWorld**, the simple 'hello world' script to test that everything is configured and working on your system. <br>
   Usage, just run the script <br>
 * **lastLogin.ps1**, A PowerShell script for listing the last login of non-Default users. <br>
