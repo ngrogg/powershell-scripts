@@ -4,6 +4,9 @@ Scripts that I've written for PowerShell. <br>
 
 ## Scripts
 The scripts are as follows: <br>
+* **createCustomViews.ps1**, PowerShell script to create custom views to view Error/Critical Errors on Windows Events.
+  Also creates a view for power off/on cycles. <br>
+  Usage, just run the script as Administrator. <br>
 * **diskSpace**, A PowerShell script to find the largest files and folders at a provided filepath.
   Takes a filepath as an argument, doesn't have to be C:\ drive. For best results run in admin powerShell prompt. <br>
   Usage, `.\diskSpace.ps1 C:\FILEPATH` <br>
