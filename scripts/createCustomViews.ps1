@@ -2,6 +2,7 @@
 
 # Create Custom Views
 # PowerShell script to create custom views on a Windows Server
+# Needs run as admin
 
 $ErrorActionPreference = 'Stop'
 
@@ -108,6 +109,53 @@ try {
 }
 catch {
     Write-Error "Failed to create custom view 'Power Events'. $_"
+}
+
+# Define target folder for Password Changes.
+$passwordEventsDirectory = "$env:ProgramData\Microsoft\Event Viewer\Views\Password Changes"
+
+# Ensure the target directory exists
+try {
+    if (-not (Test-Path -Path $passwordEventsDirectory)) {
+        New-Item -Path $passwordEventsDirectory -ItemType Directory -Force | Out-Null
+    }
+}
+catch {
+    Write-Error "Failed to create directory $passwordEventsDirectory. $_"
+    return
+}
+
+# Generate Event Viewer XML configuration for Password Changes
+$passwordEventsXmlContent = @"
+<ViewerConfig>
+<QueryConfig>
+<QueryParams>
+  <UserQuery />
+</QueryParams>
+<QueryNode>
+  <Name>Password Changes</Name>
+  <Description>Tracks local account password change (4723) and password reset (4724) events.</Description>
+  <QueryList>
+    <Query Id="0" Path="Security">
+      <Select Path="Security">*[System[(EventID=4723 or EventID=4724)]]</Select>
+    </Query>
+  </QueryList>
+</QueryNode>
+</QueryConfig>
+</ViewerConfig>
+"@
+
+# Define XML output file path
+$passwordEventsFileName = "Password Changes.xml"
+$passwordEventsFilePath = Join-Path -Path $passwordEventsDirectory -ChildPath $passwordEventsFileName
+
+# Write the custom view file
+try {
+    Set-Content -Path $passwordEventsFilePath -Value $passwordEventsXmlContent -Encoding UTF8 -Force
+    Write-Host "Created Custom View: 'Password Changes' -> $passwordEventsFilePath" -ForegroundColor Green
+}
+catch {
+    Write-Error "Failed to create custom view 'Password Changes'. $_"
 }
 
 Write-Host "Close and re-open Event Viewer if needed"
