@@ -7,10 +7,18 @@ The scripts are as follows: <br>
 * **createCustomViews.ps1**, PowerShell script to create custom views to view Error/Critical Errors on Windows Events.
   Also creates a view for power off/on cycles. <br>
   Also creates a view for password changes. <br>
+  Script is idempotent so it can safely be run repeatedly. <br>
   Usage, just run the script as Administrator. <br>
 * **diskSpace**, A PowerShell script to find the largest files and folders at a provided filepath.
   Takes a filepath as an argument, doesn't have to be C:\ drive. For best results run in admin powerShell prompt. <br>
   Usage, `.\diskSpace.ps1 C:\FILEPATH` <br>
+* **eventViewerRetention.ps1**, A PowerShell script to extend the retention size for Event Viewer. <br>
+  Sets the `Application` retention to 256 MB. <br>
+  Sets the `System` retention to 256 MB. <br>
+  Sets the `Security` retention to 1024 MB. <br>
+  Script is idempotent so it can safely be run repeatedly. <br>
+  Script will not set values if current value is larger than target value. <br>
+  Usage, just run the script as Administrator. <br>
 * **fakeTop**, A PowerShell script designed to emulate top output. Lists the processes using the most CPU.
   Usage, just run the script. Control + C to exit. <br>
   See comments for rundown of output and sources. <br>
