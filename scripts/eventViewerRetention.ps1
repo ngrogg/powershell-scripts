@@ -3,29 +3,18 @@
 # eventViewerRetention.ps1
 # Configures Event Log retention sizes for Application, System, and Security logs.
 # By Nicholas Grogg
-# Revision: 20260905
+# Revision: 20260909
 
 <#
 .SYNOPSIS
     Configures Event Log retention sizes for Application, System, and Security logs.
 .DESCRIPTION
-    This script sets log sizes (Application: 256MB, System: 256MB, Security: 1024MB)
-    with circular logging (OverwriteAsNeeded). If an existing log size is already equal
-    to or greater than the target size, the larger size is retained.
+    Sets log sizes with circular logging (OverwriteAsNeeded). If an existing log size
+    is already equal to or greater than the target size, the larger size is retained.
 #>
+[CmdletBinding(SupportsShouldProcess = $true)]
+param()
 
-# 1. Enforce Administrator Privileges Check
-# Ensures execution halts cleanly with a message if run in a non-elevated session.
-$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
-$principal = New-Object Security.Principal.WindowsPrincipal($identity)
-$isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-
-if (-not $isAdmin) {
-    Write-Error "Access Denied: This script requires Administrator privileges. Please re-run PowerShell as Administrator."
-    exit 1
-}
-
-# 2. Define Desired Log Configurations
 # Key-value mapping of log names and target sizes in Megabytes (MB).
 $logSettings = @(
     @{ Name = "Application"; SizeMB = 256 },
@@ -33,57 +22,59 @@ $logSettings = @(
     @{ Name = "Security";    SizeMB = 1024 }
 )
 
-Write-Host "--- Starting Event Log Configuration ---" -ForegroundColor Cyan
+$blockSizeBytes = 64KB
 
-# 3. Iterate through each log and apply settings if necessary
+Write-Verbose "Starting Event Log Configuration..."
+
 foreach ($setting in $logSettings) {
     $logName = $setting.Name
-    $targetSizeMB = $setting.SizeMB
+    $targetSizeBytes = [int64]$setting.SizeMB * 1MB
 
-    # Convert target size MB to KB and Bytes
-    $targetSizeKB = $targetSizeMB * 1024
-    $targetSizeBytes = $targetSizeMB * 1MB
+    # Ensure size is aligned to the required 64KB boundary
+    $remainder = $targetSizeBytes % $blockSizeBytes
+    if ($remainder -ne 0) {
+        $targetSizeBytes += ($blockSizeBytes - $remainder)
+    }
 
-    # Fetch current event log properties for comparison
-    $currentLog = Get-EventLog -List | Where-Object { $_.Log -eq $logName }
+    $targetSizeMB = [math]::Round($targetSizeBytes / 1MB)
 
-    if ($null -eq $currentLog) {
-        Write-Warning "Log '$logName' does not exist on this machine. Skipping."
+    # Detect active Group Policy overrides
+    $gpoPath = "HKLM:\Software\Policies\Microsoft\Windows\EventLog\$logName"
+    if (Test-Path $gpoPath) {
+        Write-Warning "Log '$logName' has Group Policy settings at '$gpoPath'. Manual changes may be reverted by GPO."
+    }
+
+    # Load log configuration using modern Eventing API (compatible with PS 5.1 and PS 7+)
+    try {
+        $logConfig = [System.Diagnostics.Eventing.Reader.EventLogConfiguration]::new($logName)
+    }
+    catch {
+        Write-Warning "Log '$logName' does not exist or is inaccessible on this machine. Skipping."
         continue
     }
 
-    $currentSizeKB = $currentLog.MaximumKilobytes
-    $currentSizeMB = [math]::Round($currentSizeKB / 1024)
-    $overflowMatches = $currentLog.OverflowAction -eq "OverwriteAsNeeded"
-    $isSizeSufficient = $currentSizeKB -ge $targetSizeKB
+    $currentSizeBytes = $logConfig.MaximumSizeInBytes
+    $currentSizeMB = [math]::Round($currentSizeBytes / 1MB)
+    $isCircular = $logConfig.LogMode -eq [System.Diagnostics.Eventing.Reader.EventLogMode]::Circular
+    $isSizeSufficient = $currentSizeBytes -ge $targetSizeBytes
 
-    # IDEMPOTENCY & THRESHOLD CHECK:
-    # - If current size >= target size and overflow matches: Skip
-    # - If current size >= target size but overflow differs: Update OverflowAction only (preserve larger size)
-    # - If current size < target size: Update size to target and set OverflowAction
-    if ($isSizeSufficient -and $overflowMatches) {
-        Write-Host "[SKIP] '$logName' current size ($currentSizeMB MB) is >= target ($targetSizeMB MB) and OverwriteAsNeeded is set." -ForegroundColor Green
+    if ($isSizeSufficient -and $isCircular) {
+        Write-Host "[SKIP] '$logName' size ($currentSizeMB MB) is >= target ($targetSizeMB MB) and Circular mode is active." -ForegroundColor Green
+        continue
     }
-    elseif ($isSizeSufficient -and -not $overflowMatches) {
-        Write-Host "[UPDATE] '$logName' current size ($currentSizeMB MB) is >= target ($targetSizeMB MB). Updating OverflowAction to OverwriteAsNeeded..." -ForegroundColor Yellow
+
+    $newSize = if ($isSizeSufficient) { $currentSizeBytes } else { $targetSizeBytes }
+    $actionMessage = "Set maximum size to $([math]::Round($newSize / 1MB)) MB and mode to Circular"
+
+    if ($PSCmdlet.ShouldProcess("EventLog: $logName", $actionMessage)) {
         try {
-            Limit-EventLog -LogName $logName -OverflowAction OverwriteAsNeeded -ErrorAction Stop
-            Write-Host "[SUCCESS] '$logName' overflow action updated successfully." -ForegroundColor Green
-        }
-        catch {
-            Write-Error "Failed to update overflow action for '$logName': $_"
-        }
-    }
-    else {
-        Write-Host "[UPDATE] Increasing '$logName' size from $currentSizeMB MB to ${targetSizeMB} MB..." -ForegroundColor Yellow
-        try {
-            Limit-EventLog -LogName $logName -MaximumSize $targetSizeBytes -OverflowAction OverwriteAsNeeded -ErrorAction Stop
+            $logConfig.MaximumSizeInBytes = $newSize
+            $logConfig.LogMode = [System.Diagnostics.Eventing.Reader.EventLogMode]::Circular
+            $logConfig.SaveChanges()
             Write-Host "[SUCCESS] '$logName' updated successfully." -ForegroundColor Green
         }
         catch {
-            Write-Error "Failed to update '$logName': $_"
+            Write-Error "Failed to update log '$logName': $_"
         }
     }
 }
-
-Write-Host "--- Configuration Complete ---" -ForegroundColor Cyan
